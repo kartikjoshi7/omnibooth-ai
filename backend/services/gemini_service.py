@@ -19,7 +19,7 @@ if GEMINI_API_KEY and GEMINI_API_KEY != "<YOUR_GEMINI_API_KEY_HERE>":
     
 MODEL_NAME = "gemini-2.5-flash-lite"
 
-from services.database import get_db
+from backend.services.database import get_db
 
 def clean_json_response(text: str) -> dict:
     """Strips markdown code boundaries dynamically from raw LLM outputs before JSON serialization."""

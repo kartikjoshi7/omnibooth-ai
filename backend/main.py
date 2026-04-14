@@ -6,9 +6,9 @@ from contextlib import asynccontextmanager
 from fastapi.responses import FileResponse
 import google.generativeai as genai
 
-from models import KioskRequest, KioskResponse, LeadCaptureRequest, LeadCaptureResponse, DocumentUploadRequest
-from services.gemini_service import generate_visual_context, process_lead_notes, update_knowledge_vault
-from services.database import get_db, close_db
+from backend.models import KioskRequest, KioskResponse, LeadCaptureRequest, LeadCaptureResponse, DocumentUploadRequest
+from backend.services.gemini_service import generate_visual_context, process_lead_notes, update_knowledge_vault
+from backend.services.database import get_db, close_db
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
