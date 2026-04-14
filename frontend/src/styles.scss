@@ -178,3 +178,39 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   flex: 1;
 }
+
+/* Accessibility: Skip to content link */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 9999;
+  background: var(--accent-color);
+  color: #000;
+  padding: 12px 24px;
+  border-radius: 0 0 8px 8px;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Accessibility: Focus indicators for keyboard navigation (WCAG 2.1 AA) */
+*:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(0, 255, 204, 0.25);
+}

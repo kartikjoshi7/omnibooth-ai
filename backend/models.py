@@ -10,9 +10,9 @@ class KioskResponse(BaseModel):
     message: str = Field(..., description="The rich technical description of the required physics simulation.")
 
 class LeadCaptureRequest(BaseModel):
-    notes: str = Field(..., description="The rough notes or voice transcript logged by the exhibitor.")
-    attendee_name: Optional[str] = None
-    attendee_email: Optional[str] = None
+    notes: str = Field(..., min_length=1, max_length=10000, description="The rough notes or voice transcript logged by the exhibitor.")
+    attendee_name: Optional[str] = Field(None, max_length=200)
+    attendee_email: Optional[str] = Field(None, max_length=320)
 
 class LeadCaptureResponse(BaseModel):
     sentiment: str = Field(..., description="AI determined intent: Hot, Warm, or Cold.")
@@ -21,4 +21,4 @@ class LeadCaptureResponse(BaseModel):
     verification_status: Optional[str] = Field("Pending", description="Status set by the OmniEngine Critic Loop.")
 
 class DocumentUploadRequest(BaseModel):
-    text: str = Field(..., description="The highly technical manual text to add to the knowledge vault.")
+    text: str = Field(..., min_length=1, max_length=100000, description="The highly technical manual text to add to the knowledge vault.")

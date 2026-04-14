@@ -1,4 +1,6 @@
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 
 export interface KioskResponse {
   media_url: string;
@@ -28,34 +30,33 @@ export interface Lead {
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = '';
+  /** Dynamically resolves the API base URL for local dev vs Cloud Run production. */
+  readonly baseUrl = window.location.port === '4200' ? 'http://localhost:8000' : '';
+
+  constructor(private http: HttpClient) {}
 
   async generateVisual(prompt: string, image_data?: string): Promise<KioskResponse> {
-    const payload: any = { prompt };
-    if (image_data) payload.image_data = image_data;
+    const payload: Record<string, string> = { prompt };
+    if (image_data) payload['image_data'] = image_data;
 
-    const res = await fetch(`${this.baseUrl}/generate-visual`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) throw new Error('Failed to generate visual');
-    return res.json();
+    return firstValueFrom(
+      this.http.post<KioskResponse>(`${this.baseUrl}/generate-visual`, payload)
+    );
   }
 
   async captureLead(notes: string, name?: string, email?: string): Promise<LeadResponse> {
-    const res = await fetch(`${this.baseUrl}/capture-lead`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ notes, attendee_name: name || null, attendee_email: email || null })
-    });
-    if (!res.ok) throw new Error('Failed to capture lead');
-    return res.json();
+    return firstValueFrom(
+      this.http.post<LeadResponse>(`${this.baseUrl}/capture-lead`, {
+        notes,
+        attendee_name: name || null,
+        attendee_email: email || null
+      })
+    );
   }
 
   async getLeads(): Promise<Lead[]> {
-    const res = await fetch(`${this.baseUrl}/leads`);
-    if (!res.ok) throw new Error('Failed to load leads');
-    return res.json();
+    return firstValueFrom(
+      this.http.get<Lead[]>(`${this.baseUrl}/leads`)
+    );
   }
 }

@@ -4,7 +4,7 @@ WORKDIR /app
 COPY frontend/package*.json ./frontend/
 RUN cd frontend && npm install
 COPY frontend/ ./frontend/
-RUN cd frontend && npm run build --configuration=production
+RUN cd frontend && npx ng build --configuration=production
 
 # Stage 2: Serve with FastAPI
 FROM python:3.10-slim
@@ -20,8 +20,8 @@ COPY backend/ ./backend/
 # Copy compiled frontend from Stage 1 to the location expected by main.py
 COPY --from=build /app/frontend/dist /app/frontend/dist
 
-# Expose port (Cloud Run sets PORT env variable)
-ENV PORT=8000
+# Expose port (Cloud Run uses 8080)
+ENV PORT=8080
 EXPOSE 8080
 
 # Run FastAPI via Uvicorn

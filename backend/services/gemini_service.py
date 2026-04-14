@@ -1,7 +1,8 @@
 import os
 import json
+import time
+import logging
 import traceback
-import urllib.parse
 import httpx
 import google.generativeai as genai
 from google.api_core.exceptions import ResourceExhausted
@@ -10,8 +11,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+logger = logging.getLogger("omnibooth")
+
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-HF_API_TOKEN = os.getenv("HF_API_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
 if GEMINI_API_KEY and GEMINI_API_KEY != "<YOUR_GEMINI_API_KEY_HERE>":
@@ -20,6 +22,11 @@ if GEMINI_API_KEY and GEMINI_API_KEY != "<YOUR_GEMINI_API_KEY_HERE>":
 MODEL_NAME = "gemini-2.5-flash-lite"
 
 from backend.services.database import get_db
+
+# --- Knowledge Vault Cache (TTL: 60 seconds) ---
+_vault_cache = {"text": "", "timestamp": 0}
+VAULT_CACHE_TTL = 60
+
 
 def clean_json_response(text: str) -> dict:
     """Strips markdown code boundaries dynamically from raw LLM outputs before JSON serialization."""
@@ -34,11 +41,12 @@ def clean_json_response(text: str) -> dict:
     try:
         return json.loads(cleaned.strip())
     except json.JSONDecodeError as e:
-        print(f"Critical JSON Parsing Error: {e}")
+        logger.error(f"JSON parsing failed: {e}")
         return {} 
 
 async def update_knowledge_vault(doc_text: str):
-    """Asynchronously pushes raw text into the RAG knowledge collection."""
+    """Asynchronously pushes raw text into the RAG knowledge collection and invalidates cache."""
+    global _vault_cache
     db = get_db()
     if db is not None:
         await db.knowledge.update_one(
@@ -46,14 +54,21 @@ async def update_knowledge_vault(doc_text: str):
             {"$set": {"text": doc_text}},
             upsert=True
         )
+        _vault_cache = {"text": doc_text, "timestamp": time.time()}
+        logger.info("Knowledge Vault updated and cache refreshed")
 
 async def get_knowledge_vault() -> str:
-    """Extracts internal company documentation from the stateless RAG cluster."""
+    """Extracts internal company documentation with in-memory TTL caching to reduce DB load."""
+    global _vault_cache
+    if time.time() - _vault_cache["timestamp"] < VAULT_CACHE_TTL and _vault_cache["text"]:
+        return _vault_cache["text"]
+    
     db = get_db()
     if db is not None:
         doc = await db.knowledge.find_one({"_id": "main_vault"})
         if doc:
-            return doc.get("text", "")
+            _vault_cache = {"text": doc.get("text", ""), "timestamp": time.time()}
+            return _vault_cache["text"]
     return ""
 
 async def generate_visual_context(user_prompt: str, image_data: str = None) -> dict:
@@ -114,13 +129,13 @@ async def generate_visual_context(user_prompt: str, image_data: str = None) -> d
             
         return data
     except ResourceExhausted:
-        print("CRITICAL: Hit Gemini Rate Limits! Slow down your requests.")
+        logger.warning("Gemini rate limit hit during visual generation")
         return {
             "media_url": "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=1200&auto=format&fit=crop",
             "message": "Fallback: Hit Gemini Rate Limits! Slow down your requests."
         }
     except Exception as e:
-        print(f"Critical Visual Pipeline Error: {e}")
+        logger.error(f"Visual pipeline error: {e}")
         return {
             "media_url": "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=1200&auto=format&fit=crop",
             "message": f"Fallback: Python Engine Error Block: {str(e)}"
@@ -158,6 +173,7 @@ async def process_lead_notes(notes: str, attendee_name: str = "Unknown Prospect"
             generation_config=genai.GenerationConfig(response_mime_type="application/json")
         )
         draft_data = clean_json_response(resp_a.text)
+        logger.info(f"Agent A classified lead as: {draft_data.get('sentiment', 'Unknown')}")
         
         # AGENT C: The Market Analyst
         market_intelligence = ""
@@ -168,8 +184,9 @@ async def process_lead_notes(notes: str, attendee_name: str = "Unknown Prospect"
                 market_intelligence = "LIVE MARKET INTELLIGENCE:\n"
                 for r in results:
                     market_intelligence += f"- {r['title']}: {r['body']}\n"
+                logger.info(f"Agent C gathered market intel on: {comp_name}")
             except Exception as e:
-                print(f"Agent C DuckDuckGo search suppressed: {e}")
+                logger.warning(f"Agent C web search suppressed: {e}")
                 
         # AGENT B: The Engineer/Closer
         critic_prompt = (
@@ -202,6 +219,7 @@ async def process_lead_notes(notes: str, attendee_name: str = "Unknown Prospect"
             generation_config=genai.GenerationConfig(response_mime_type="application/json")
         )
         critic_data = clean_json_response(resp_b.text)
+        logger.info("Agent B verification complete")
         
         # Merge results
         draft_data["drafted_email"] = critic_data.get("verified_email", draft_data.get("drafted_email", ""))
@@ -215,17 +233,16 @@ async def process_lead_notes(notes: str, attendee_name: str = "Unknown Prospect"
                 "content": f"🚨 **HOT LEAD SECURED** 🚨\n**Prospect:** {attendee_name}\n**Intel:** {notes}\n**Auto-Action:** Proposal drafted and verified by OmniEngine."
             }
             try:
-                import httpx
-                # Run isolated POST trap so failure does not destroy Kiosk API sequence
                 async with httpx.AsyncClient(timeout=5.0) as client:
                     await client.post(WEBHOOK_URL, json=payload)
+                logger.info(f"Hot lead webhook dispatched for: {attendee_name}")
             except Exception as e:
-                print(f"Deal Webhook blocked/timed-out safely: {e}")
+                logger.warning(f"Webhook dispatch failed: {e}")
 
         return draft_data
         
     except ResourceExhausted:
-        print("CRITICAL: Hit Gemini Rate Limits in Critic Loop! Slow down your requests.")
+        logger.error("Gemini rate limit hit during lead processing")
         return {
             "sentiment": "Unknown",
             "drafted_email": "Error generating email. Hit API Rate Limits.",
@@ -233,7 +250,7 @@ async def process_lead_notes(notes: str, attendee_name: str = "Unknown Prospect"
             "verification_status": "Failed Validation (Rate Limited)"
         }
     except Exception as e:
-        print(f"Critical Lead Pipeline Error: {e}")
+        logger.error(f"Lead pipeline error: {e}")
         traceback.print_exc()
         return {
             "sentiment": "Unknown",
