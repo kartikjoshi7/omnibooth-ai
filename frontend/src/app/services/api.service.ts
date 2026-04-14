@@ -28,7 +28,7 @@ export interface Lead {
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'http://localhost:8000';
+  private baseUrl = '';
 
   async generateVisual(prompt: string, image_data?: string): Promise<KioskResponse> {
     const payload: any = { prompt };
