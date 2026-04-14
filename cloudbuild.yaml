@@ -1,0 +1,13 @@
+# Google Cloud Build Configuration
+# Automatically deploys the OmniBooth AI container to Google Cloud Run
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/omnibooth-ai', '.']
+    id: 'Build-Google-Cloud-Container'
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/omnibooth-ai']
+    id: 'Push-To-Google-Container-Registry'
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: ['run', 'deploy', 'omnibooth-ai', '--image', 'gcr.io/$PROJECT_ID/omnibooth-ai', '--region', 'asia-south1']
+    id: 'Deploy-To-Google-Cloud-Run'

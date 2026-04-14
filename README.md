@@ -19,6 +19,12 @@ In the modern enterprise ecosystem, traditional trade show lead capture is slow,
 
 ---
 
+## 🎯 Hackathon Problem Statement Alignment
+
+This project directly addresses the Physical Event Experience challenge. By deploying a Zero-Trust Multimodal Kiosk, we fundamentally enhance the Physical Event Experience for both attendees and exhibitors. The system bridges the gap between physical booth interactions and digital lead capture, transforming a standard physical event into an AI-driven, highly efficient ecosystem.
+
+---
+
 ## 🏗️ System Architecture & Tech Stack
 
 OmniBooth AI is engineered around a strict separation of concerns, operating across a serverless environment optimized for enterprise scalability. 
