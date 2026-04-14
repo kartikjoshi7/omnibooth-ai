@@ -20,8 +20,7 @@ In the modern enterprise ecosystem, traditional trade show lead capture is slow,
 ---
 
 ## 🎯 Hackathon Problem Statement Alignment
-
-This project directly addresses the Physical Event Experience challenge. By deploying a Zero-Trust Multimodal Kiosk, we fundamentally enhance the Physical Event Experience for both attendees and exhibitors. The system bridges the gap between physical booth interactions and digital lead capture, transforming a standard physical event into an AI-driven, highly efficient ecosystem.
+This project directly addresses the **Physical Event Experience** challenge. By deploying a Zero-Trust Multimodal Kiosk, we fundamentally enhance the Physical Event Experience for both attendees and exhibitors. The system bridges the gap between physical booth interactions and digital lead capture, transforming a standard physical event into an AI-driven ecosystem.
 
 ---
 
@@ -86,6 +85,13 @@ npm install
 npm run start
 ```
 Navigate to `http://localhost:4200` to interact with the Kiosk and Exhibitor dashboards natively.
+
+---
+
+## 🤔 Assumptions Made
+1. **Network Availability:** Assumes the venue has stable internet to reach Google Cloud Run and the Google Generative AI SDK.
+2. **Device Hardware:** Assumes the Kiosk host device has a functional microphone for native Web Speech API integration.
+3. **Data Privacy:** Assumes attendees consent to voice-processing, as no PII is permanently stored.
 
 ---
 

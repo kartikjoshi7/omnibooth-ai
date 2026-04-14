@@ -9,63 +9,64 @@ import { ApiService, KioskResponse } from '../services/api.service';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="kiosk-container">
-      <header class="glass-panel text-center">
+      <header class="glass-panel text-center" role="banner">
         <h1>OmniBooth Multimodal JARVIS Kiosk</h1>
         <p class="text-secondary">Speak your structural constraints and supply spatial references securely</p>
       </header>
 
-      <div class="main-content">
-        <div class="input-section glass-panel">
+      <main class="main-content" role="main" aria-label="Kiosk Command Matrix">
+        <section class="input-section glass-panel" aria-label="Multimodal Data Ingestion Area">
           <textarea
             class="input-primary"
+            aria-label="Mechanical Engineering Vector Prompt Input TextField"
             [(ngModel)]="prompt"
             rows="3"
             placeholder="E.g., Modify the attached badge/part for cryogenic 4000 ATM resilience"
           ></textarea>
           
           <div class="mic-controls mt-2" *ngIf="speechRecognition">
-             <button class="btn-mic" [class.pulsing-mic]="isListening" (click)="toggleListening()">
+             <button class="btn-mic" aria-label="Toggle Voice Control Sequence" [class.pulsing-mic]="isListening" (click)="toggleListening()">
                 🎤 {{ isListening ? 'Listening... (Speak Now)' : 'Tap to Speak' }}
              </button>
           </div>
           
-          <div class="camera-module mt-3" *ngIf="!cameraStream" (click)="startCamera()">
+          <div class="camera-module mt-3" aria-label="Initiate Visual Subsystem Feed" *ngIf="!cameraStream" (click)="startCamera()" tabindex="0">
              <p>📷 Click to Enable Spatial Scan (Camera API)</p>
           </div>
           
           <div class="camera-active mt-3" *ngIf="cameraStream">
-             <video #videoElement autoplay playsinline class="video-preview"></video>
-             <button class="btn-primary mt-2" (click)="captureImage()" *ngIf="!capturedImage">Capture Reference</button>
+             <video #videoElement autoplay playsinline aria-label="Active Security Camera Feed Monitor" class="video-preview"></video>
+             <button class="btn-primary mt-2" aria-label="Capture Secure Spatial Frame" (click)="captureImage()" *ngIf="!capturedImage">Capture Reference</button>
              <div class="captured-preview mt-2" *ngIf="capturedImage">
-                 <img [src]="capturedImage" class="preview-img" />
-                 <button class="btn-secondary" (click)="capturedImage = null">Retake Scan</button>
+                 <img [src]="capturedImage" alt="Captured Scene Reference" class="preview-img" />
+                 <button class="btn-secondary" aria-label="Purge Captured Visual and Retake" (click)="capturedImage = null">Retake Scan</button>
              </div>
           </div>
 
-          <button class="btn-primary mt-3 w-100" (click)="generate()" [disabled]="isLoading || (!prompt.trim() && !capturedImage) || isListening">
+          <button class="btn-primary mt-3 w-100" aria-label="Execute Kiosk Reasoning Loop" (click)="generate()" [disabled]="isLoading || (!prompt.trim() && !capturedImage) || isListening">
             {{ isLoading ? 'Rendering Spatial Physics...' : 'Generate Contextual Media' }}
           </button>
-        </div>
+        </section>
 
-        <div class="media-container glass-panel mt-4" *ngIf="result || isLoading">
-          <div *ngIf="isLoading" class="parsing-metrics pulsing">
+        <section class="media-container glass-panel mt-4" aria-label="Generation Feedback Sandbox" *ngIf="result || isLoading">
+          <div *ngIf="isLoading" class="parsing-metrics pulsing" aria-live="polite">
             <div class="metric">Extracting Vision Vectors...</div>
             <div class="metric">Calculating Spatial Load...</div>
             <div class="metric">Compiling Cross-Reference Simulation...</div>
           </div>
           
-          <div *ngIf="result && !isLoading" class="result-view">
+          <div *ngIf="result && !isLoading" class="result-view" aria-live="polite">
             <div class="audio-controls mb-2" *ngIf="isSpeaking">
-                <button class="btn-secondary" (click)="stopSpeaking()">🔇 Stop Audio</button>
+                <button class="btn-secondary" aria-label="Mute TTS Synthetic Output" (click)="stopSpeaking()">🔇 Stop Audio</button>
             </div>
-            <img [src]="result.media_url" alt="Simulated Media" class="media-render" />
+            <img [src]="result.media_url" alt="Simulated Visual Generation Output" class="media-render" />
             <div class="message mt-3">
               <h3>Agentic AI Context:</h3>
               <p>{{ result.message }}</p>
             </div>
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
       
       <!-- Hidden canvas for capturing frames -->
       <canvas #canvasElement style="display:none;"></canvas>

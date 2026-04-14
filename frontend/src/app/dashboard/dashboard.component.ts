@@ -8,49 +8,49 @@ import { ApiService, Lead } from '../services/api.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="dashboard-container">
-      <header class="glass-panel header-bar">
+    <div class="dashboard-container" role="main" aria-label="Dashboard Pipeline">
+      <header class="glass-panel header-bar" role="banner">
         <h1>OmniBooth CRM Dashboard</h1>
-        <button class="btn-primary" (click)="loadLeads()">Refresh Leads</button>
+        <button class="btn-primary" aria-label="Refresh Lead Data" (click)="loadLeads()">Refresh Leads</button>
       </header>
       
-      <div class="capture-section glass-panel mt-4">
+      <section class="capture-section glass-panel mt-4" aria-label="Knowledge Vault Engine">
         <h2 style="color: var(--accent-color)">Ingest Knowledge Vault (RAG)</h2>
-        <textarea class="input-primary mt-3" [(ngModel)]="vaultDoc" rows="3" placeholder="Paste technical manuals, product specs, or documentation to align the AI Critic Loop..."></textarea>
-        <button class="btn-primary mt-3" (click)="uploadDocs()">Ingest Reference Data</button>
-      </div>
+        <textarea class="input-primary mt-3" aria-label="Document Input Textarea" [(ngModel)]="vaultDoc" rows="3" placeholder="Paste technical manuals, product specs, or documentation to align the AI Critic Loop..."></textarea>
+        <button class="btn-primary mt-3" aria-label="Initiate Vault Ingestion" (click)="uploadDocs()">Ingest Reference Data</button>
+      </section>
 
-      <div class="capture-section glass-panel mt-4">
+      <section class="capture-section glass-panel mt-4" aria-label="Lead Extraction Engine">
         <h2>Enter Exhibitor Notes</h2>
         <div class="form-grid">
-          <input class="input-primary" [(ngModel)]="newLeadName" placeholder="Attendee Name (Optional)" />
-          <input class="input-primary" [(ngModel)]="newLeadEmail" placeholder="Attendee Email (Optional)" />
+          <input class="input-primary" aria-label="Attendee Name TextField" [(ngModel)]="newLeadName" placeholder="Attendee Name (Optional)" />
+          <input class="input-primary" aria-label="Attendee Email TextField" [(ngModel)]="newLeadEmail" placeholder="Attendee Email (Optional)" />
         </div>
-        <textarea class="input-primary mt-3" [(ngModel)]="newLeadNotes" rows="3" placeholder="Notes/Voice transcript regarding the technical interaction..."></textarea>
-        <button class="btn-primary mt-3" (click)="captureLead()" [disabled]="isParsing || !newLeadNotes.trim()">
+        <textarea class="input-primary mt-3" aria-label="Attendee Raw Notes" [(ngModel)]="newLeadNotes" rows="3" placeholder="Notes/Voice transcript regarding the technical interaction..."></textarea>
+        <button class="btn-primary mt-3" aria-label="Execute AI Extraction" (click)="captureLead()" [disabled]="isParsing || !newLeadNotes.trim()">
           {{ isParsing ? 'Parsing Context via Gemini...' : 'Analyze & Capture Lead' }}
         </button>
-      </div>
+      </section>
 
-      <div class="kanban-board mt-4">
-        <div class="kanban-column glass-panel hot">
-          <h3>🔥 Hot Leads</h3>
+      <section class="kanban-board mt-4" aria-label="Pipeline Kanban Columns">
+        <div class="kanban-column glass-panel hot" role="list" aria-label="Hot Leads Column">
+          <h3 aria-hidden="true">🔥 Hot Leads</h3>
           <div class="lead-card" *ngFor="let m of getLeadsBySentiment('Hot')" (click)="expandLead(m)">
             <h4>{{ m.attendee_name || 'Unknown User' }}</h4>
             <p class="summary">{{ m.notes }}</p>
           </div>
         </div>
         
-        <div class="kanban-column glass-panel warm">
-          <h3>⚡ Warm Leads</h3>
+        <div class="kanban-column glass-panel warm" role="list" aria-label="Warm Leads Column">
+          <h3 aria-hidden="true">⚡ Warm Leads</h3>
           <div class="lead-card" *ngFor="let m of getLeadsBySentiment('Warm')" (click)="expandLead(m)">
             <h4>{{ m.attendee_name || 'Unknown User' }}</h4>
             <p class="summary">{{ m.notes }}</p>
           </div>
         </div>
 
-        <div class="kanban-column glass-panel cold">
-          <h3>❄️ Cold Leads</h3>
+        <div class="kanban-column glass-panel cold" role="list" aria-label="Cold Leads Column">
+          <h3 aria-hidden="true">❄️ Cold Leads</h3>
           <div class="lead-card" *ngFor="let m of getLeadsBySentiment('Cold')" (click)="expandLead(m)">
             <h4>{{ m.attendee_name || 'Unknown User' }}</h4>
             <p class="summary">{{ m.notes }}</p>
@@ -58,9 +58,9 @@ import { ApiService, Lead } from '../services/api.service';
         </div>
       </div>
 
-      <div class="modal-overlay" *ngIf="expandedLead" (click)="expandedLead = null">
+      <div class="modal-overlay" aria-modal="true" role="dialog" aria-label="Exhibitor Card Modal" *ngIf="expandedLead" (click)="expandedLead = null">
         <div class="modal glass-panel" (click)="$event.stopPropagation()">
-          <button class="close-btn" (click)="expandedLead = null">×</button>
+          <button class="close-btn" aria-label="Close Pipeline Detail Modal" (click)="expandedLead = null">×</button>
           <h2>Lead Details: {{ expandedLead.attendee_name || 'Unknown' }}</h2>
           <div class="modal-content mt-3">
              <h3>Raw Notes</h3>
@@ -75,9 +75,9 @@ import { ApiService, Lead } from '../services/api.service';
              <p>{{ expandedLead.verification_status }}</p>
 
              <h3 class="mt-3">Auto-Generated Follow-up</h3>
-             <textarea class="input-primary" rows="6" readonly [value]="expandedLead.drafted_email"></textarea>
+             <textarea class="input-primary" aria-label="Drafted Sales Follow-up Envelope" rows="6" readonly [value]="expandedLead.drafted_email"></textarea>
              
-             <button class="btn-primary mt-3" (click)="sendEmail()">Send Proposal</button>
+             <button class="btn-primary mt-3" aria-label="Finalize Transmission of Proposal" (click)="sendEmail()">Send Proposal</button>
           </div>
         </div>
       </div>
