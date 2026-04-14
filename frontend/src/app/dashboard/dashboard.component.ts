@@ -56,7 +56,7 @@ import { ApiService, Lead } from '../services/api.service';
             <p class="summary">{{ m.notes }}</p>
           </div>
         </div>
-      </div>
+      </section>
 
       <div class="modal-overlay" aria-modal="true" role="dialog" aria-label="Exhibitor Card Modal" *ngIf="expandedLead" (click)="expandedLead = null">
         <div class="modal glass-panel" (click)="$event.stopPropagation()">
