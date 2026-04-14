@@ -10,8 +10,8 @@ import { ApiService, KioskResponse } from '../services/api.service';
   template: `
     <div class="kiosk-container">
       <header class="glass-panel text-center" role="banner">
-        <h1>OmniBooth Multimodal JARVIS Kiosk</h1>
-        <p class="text-secondary">Speak your structural constraints and supply spatial references securely</p>
+        <h1>OmniBooth Smart Venue Assistant</h1>
+        <p class="text-secondary">Ask about crowd levels, wait times, navigation, or venue facilities using voice or camera</p>
       </header>
 
       <main class="main-content" role="main" aria-label="Kiosk Command Matrix">
@@ -21,7 +21,7 @@ import { ApiService, KioskResponse } from '../services/api.service';
             aria-label="Mechanical Engineering Vector Prompt Input TextField"
             [(ngModel)]="prompt"
             rows="3"
-            placeholder="E.g., Modify the attached badge/part for cryogenic 4000 ATM resilience"
+            placeholder="E.g., How crowded is the food court right now? Where is the nearest exit?"
           ></textarea>
           
           <div class="mic-controls mt-2" *ngIf="speechRecognition">
@@ -31,7 +31,7 @@ import { ApiService, KioskResponse } from '../services/api.service';
           </div>
           
           <div class="camera-module mt-3" aria-label="Initiate Visual Subsystem Feed" *ngIf="!cameraStream" (click)="startCamera()" tabindex="0">
-             <p>📷 Click to Enable Spatial Scan (Camera API)</p>
+             <p>📷 Click to Enable Venue Scan (Camera API)</p>
           </div>
           
           <div class="camera-active mt-3" *ngIf="cameraStream">
@@ -44,15 +44,15 @@ import { ApiService, KioskResponse } from '../services/api.service';
           </div>
 
           <button class="btn-primary mt-3 w-100" aria-label="Execute Kiosk Reasoning Loop" (click)="generate()" [disabled]="isLoading || (!prompt.trim() && !capturedImage) || isListening">
-            {{ isLoading ? 'Rendering Spatial Physics...' : 'Generate Contextual Media' }}
+            {{ isLoading ? 'Analyzing Venue Data...' : 'Get Venue Guidance' }}
           </button>
         </section>
 
         <section class="media-container glass-panel mt-4" aria-label="Generation Feedback Sandbox" *ngIf="result || isLoading">
           <div *ngIf="isLoading" class="parsing-metrics pulsing" aria-live="polite">
-            <div class="metric">Extracting Vision Vectors...</div>
-            <div class="metric">Calculating Spatial Load...</div>
-            <div class="metric">Compiling Cross-Reference Simulation...</div>
+            <div class="metric">Analyzing Crowd Density...</div>
+            <div class="metric">Checking Wait Times...</div>
+            <div class="metric">Generating Navigation Guidance...</div>
           </div>
           
           <div *ngIf="result && !isLoading" class="result-view" aria-live="polite">
@@ -61,7 +61,7 @@ import { ApiService, KioskResponse } from '../services/api.service';
             </div>
             <img [src]="result.media_url" alt="Simulated Visual Generation Output" class="media-render" />
             <div class="message mt-3">
-              <h3>Agentic AI Context:</h3>
+              <h3>AI Venue Guidance:</h3>
               <p>{{ result.message }}</p>
             </div>
           </div>

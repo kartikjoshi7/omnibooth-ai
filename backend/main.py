@@ -11,7 +11,7 @@ from backend.models import KioskRequest, KioskResponse, LeadCaptureRequest, Lead
 from backend.services.gemini_service import generate_visual_context, process_lead_notes, update_knowledge_vault
 from backend.services.database import get_db, close_db
 
-# --- Structured Logging ---
+# --- Structured Logging with Google Cloud Logging ---
 logging.basicConfig(
     level=logging.INFO,
     format='{"time":"%(asctime)s","level":"%(levelname)s","module":"%(module)s","message":"%(message)s"}',
@@ -19,7 +19,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger("omnibooth")
 
-# --- Structured Logging ---
+# Integrate Google Cloud Logging when running on Cloud Run
+try:
+    import google.cloud.logging as cloud_logging
+    cloud_client = cloud_logging.Client()
+    cloud_client.setup_logging()
+    logger.info("Google Cloud Logging client attached successfully")
+except Exception:
+    logger.info("Google Cloud Logging unavailable — using standard JSON logging")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -32,7 +39,7 @@ async def lifespan(app: FastAPI):
     close_db()
     logger.info("OmniBooth AI Backend shutdown — database connections closed")
 
-app = FastAPI(title="OmniBooth AI Backend", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="OmniBooth AI — Smart Venue Assistant", version="1.0.0", lifespan=lifespan)
 
 # --- CORS: Explicit Origin Allowlist ---
 ALLOWED_ORIGINS = os.getenv(
@@ -51,8 +58,8 @@ app.add_middleware(
 @app.post("/generate-visual", response_model=KioskResponse)
 async def generate_visual(request: KioskRequest, req: Request):
     """
-    Handles multimodal Kiosk inputs. Returns a dynamically generated
-    structural contextualization string and a designated proxy media URL.
+    Handles multimodal Venue Kiosk inputs. Returns AI-generated crowd guidance
+    and a contextual venue visualization URL for the attendee.
     """
     data = await generate_visual_context(request.prompt, request.image_data)
     if "media_url" not in data or "message" not in data:
@@ -61,17 +68,17 @@ async def generate_visual(request: KioskRequest, req: Request):
 
 @app.post("/upload-docs")
 async def upload_docs(request: DocumentUploadRequest, req: Request):
-    """Securely upserts new engineering specifications directly into the MongoDB RAG Knowledge Vault."""
+    """Securely upserts venue information (maps, schedules, policies) into the MongoDB Venue Info Base."""
     await update_knowledge_vault(request.text)
-    logger.info(f"Knowledge Vault updated — document length: {len(request.text)} chars")
-    return {"message": "Knowledge Vault expanded successfully in MongoDB."}
+    logger.info(f"Venue Info Base updated — document length: {len(request.text)} chars")
+    return {"message": "Venue Information Base updated successfully."}
 
 @app.post("/capture-lead", response_model=LeadCaptureResponse)
 async def capture_lead(request: LeadCaptureRequest, req: Request):
     """
-    Drives the Agentic Critic Loop. Extracts raw sales notes, identifies market competitors,
-    utilizes DuckDuckGo to compile a verified technical proposal, formats battlecards, and 
-    structurally commits the finalized payload to MongoDB for Dashboard consumption.
+    Drives the Agentic Crowd Intelligence Pipeline. Classifies attendee query urgency,
+    searches for live venue/event data, verifies AI guidance against the Venue Info Base,
+    and commits the processed query to MongoDB for the Operations Dashboard.
     """
     data = await process_lead_notes(request.notes, request.attendee_name)
     
@@ -90,7 +97,7 @@ async def capture_lead(request: LeadCaptureRequest, req: Request):
     if db is not None:
         try:
            await db.leads.insert_one(lead_doc)
-           logger.info(f"Lead captured — sentiment: {data.get('sentiment')}, name: {request.attendee_name}")
+           logger.info(f"Query processed — urgency: {data.get('sentiment')}, attendee: {request.attendee_name}")
         except Exception as e:
            logger.error(f"Database insert failed: {e}")
     
@@ -103,7 +110,7 @@ async def capture_lead(request: LeadCaptureRequest, req: Request):
 
 @app.get("/leads")
 async def get_leads(req: Request):
-    """Retrieves the chronological descending list of processed leads for the CRM Pipeline."""
+    """Retrieves the chronological descending list of processed attendee queries for the Venue Operations Dashboard."""
     db = get_db()
     if db is None:
          return []
@@ -120,7 +127,7 @@ async def get_leads(req: Request):
 
 @app.get("/analytics")
 async def get_analytics(req: Request):
-    """Generates the real-time Vibe Heatmap by aggregating sentiment limits over a rolling 10-minute cluster."""
+    """Generates the real-time Crowd Density Heatmap by aggregating query urgency over a rolling 10-minute window."""
     db = get_db()
     if db is None: return []
     try:

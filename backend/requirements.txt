@@ -3,6 +3,7 @@ uvicorn
 motor
 pydantic
 google-generativeai
+google-cloud-logging
 python-dotenv
 httpx
 duckduckgo-search

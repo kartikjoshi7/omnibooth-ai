@@ -1,5 +1,5 @@
 # test_main.py
-# Comprehensive PyTest suite for OmniBooth AI Backend
+# Comprehensive PyTest suite for OmniBooth AI — Smart Venue Assistant
 # Tests core API endpoints with mocked external dependencies (Gemini SDK, MongoDB)
 
 import pytest
@@ -54,7 +54,7 @@ client = TestClient(app)
 # ===========================
 
 class TestLeadCapture:
-    """Tests for POST /capture-lead — the core Agentic AI pipeline."""
+    """Tests for POST /capture-lead — the Agentic Crowd Intelligence Pipeline."""
 
     @patch("backend.services.gemini_service.process_lead_notes")
     def test_capture_lead_success(self, mock_process):
@@ -112,7 +112,7 @@ class TestLeadCapture:
 # ===========================
 
 class TestGetLeads:
-    """Tests for GET /leads — the CRM pipeline data source."""
+    """Tests for GET /leads — the Venue Operations Dashboard data source."""
 
     def test_get_leads_returns_list(self):
         """Verify that /leads always returns a JSON array."""
@@ -136,7 +136,7 @@ class TestGetLeads:
 # ===========================
 
 class TestGenerateVisual:
-    """Tests for POST /generate-visual — the multimodal Kiosk pipeline."""
+    """Tests for POST /generate-visual — the multimodal Venue Kiosk pipeline."""
 
     @patch("backend.services.gemini_service.generate_visual_context")
     def test_generate_visual_success(self, mock_gen):
@@ -179,7 +179,7 @@ class TestGenerateVisual:
 # ===========================
 
 class TestUploadDocs:
-    """Tests for POST /upload-docs — RAG Knowledge Vault ingestion."""
+    """Tests for POST /upload-docs — Venue Information Base ingestion."""
 
     @patch("backend.services.gemini_service.update_knowledge_vault")
     def test_upload_docs_success(self, mock_upload):
@@ -189,7 +189,7 @@ class TestUploadDocs:
             "text": "OmniCore V9 specifications: Max thermal tolerance 4500K..."
         })
         assert response.status_code == 200
-        assert "Knowledge Vault" in response.json()["message"]
+        assert "Venue Information Base" in response.json()["message"]
 
     def test_upload_docs_missing_text(self):
         """Verify missing text field returns 422."""
@@ -202,7 +202,7 @@ class TestUploadDocs:
 # ===========================
 
 class TestAnalytics:
-    """Tests for GET /analytics — real-time sentiment aggregation."""
+    """Tests for GET /analytics — real-time crowd density aggregation."""
 
     def test_analytics_returns_list(self):
         """Verify analytics endpoint returns a JSON array."""

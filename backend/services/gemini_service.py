@@ -73,16 +73,16 @@ async def get_knowledge_vault() -> str:
 
 async def generate_visual_context(user_prompt: str, image_data: str = None) -> dict:
     """
-    Processes the Kiosk UI input alongside an optional spatial camera capture.
-    It rigorously queries Gemini for structural analysis and then maps output 
-    deterministically via a lightweight keyword proxy.
+    Processes the Smart Venue Kiosk input alongside an optional camera capture.
+    Queries Gemini for crowd flow visualization and venue spatial analysis,
+    then maps output deterministically via a lightweight keyword proxy.
     """
     KNOWLEDGE_VAULT = await get_knowledge_vault()
     system_prompt = (
-        "You are an AI generating structural physics and mechanical engineering visual concepts. "
-        "Take the user's prompt (and attached spatial imagery if provided) and generate a detailed "
-        f"and inspiring description of what the 3D animation should look like. Context Vault: {KNOWLEDGE_VAULT} "
-        "Output exactly in JSON format with exactly 3 fields: 'message' (the detailed description), 'media_url' (leave blank for now), and 'image_prompt' (a 5-10 word highly descriptive, comma-separated string optimized for an image generator, e.g., '3d render, glowing titanium engine part, cyberpunk lighting, 8k resolution')."
+        "You are an AI assistant for a smart venue kiosk at a large-scale physical event. "
+        "Analyze the user's query (and attached venue imagery if provided) about crowd levels, "
+        f"wait times, navigation, or facilities. Venue Information Base: {KNOWLEDGE_VAULT} "
+        "Output exactly in JSON format with exactly 3 fields: 'message' (detailed venue guidance for the attendee), 'media_url' (leave blank for now), and 'image_prompt' (a 5-10 word descriptive string of the venue scenario, e.g., 'crowd density map, stadium entrance, real-time heatmap')."
     )
     
     if not GEMINI_API_KEY or GEMINI_API_KEY == "<YOUR_GEMINI_API_KEY_HERE>":
@@ -141,11 +141,12 @@ async def generate_visual_context(user_prompt: str, image_data: str = None) -> d
             "message": f"Fallback: Python Engine Error Block: {str(e)}"
         }
 
-async def process_lead_notes(notes: str, attendee_name: str = "Unknown Prospect") -> dict:
+async def process_lead_notes(notes: str, attendee_name: str = "Unknown Attendee") -> dict:
     """
-    The Core Agentic Pipeline. Uses a cascading multi-agent structure (Writer, Analyst, Engineer) 
-    to categorize a lead, dynamically execute a headless DuckDuckGo web-search against detected 
-    competitors, and critically verify proposal fidelity against internal RAG context.
+    The Core Agentic Crowd Intelligence Pipeline. Uses a cascading multi-agent structure 
+    (Classifier, Analyst, Verifier) to categorize attendee query urgency, dynamically 
+    search for live venue/event information, and verify AI-generated guidance against 
+    the Venue Information Base before delivering it to operators.
     """
     if not GEMINI_API_KEY or GEMINI_API_KEY == "<YOUR_GEMINI_API_KEY_HERE>":
         return {
@@ -157,13 +158,14 @@ async def process_lead_notes(notes: str, attendee_name: str = "Unknown Prospect"
         
     KNOWLEDGE_VAULT = await get_knowledge_vault()
     
-    # AGENT A: The Writer
+    # AGENT A: The Classifier
     writer_prompt = (
-        "You are an enterprise CRM assistant. Analyze the sales notes. "
-        "Extract intent/sentiment (Hot, Warm, Cold), draft a highly technical custom proposal email, "
-        "and list any action items in an array. Also output a boolean 'competitor_mentioned' and a string 'competitor_name' (e.g. 'GE-90X' if they mention it, else empty). "
+        "You are a smart venue assistant for crowd management at large-scale physical events like stadiums, expos, and metro stations. "
+        "Analyze the attendee's query. Classify urgency/sentiment (Hot = urgent crowd safety issue, Warm = moderate wait-time or navigation concern, Cold = general information request). "
+        "Draft a detailed, helpful guidance response addressing their question about crowd levels, wait times, navigation, or venue facilities. "
+        "List recommended action items for the venue operations team. Also output a boolean 'competitor_mentioned' and a string 'competitor_name' (the specific venue area or event mentioned, e.g. 'Gate 4' or 'Food Court', else empty). "
         "Output exactly JSON: 'sentiment', 'drafted_email', 'action_items', 'competitor_mentioned', 'competitor_name'."
-        f"\n\nExhibitor Documentation Context: {KNOWLEDGE_VAULT}"
+        f"\n\nVenue Information Base: {KNOWLEDGE_VAULT}"
     )
     
     try:
@@ -173,32 +175,32 @@ async def process_lead_notes(notes: str, attendee_name: str = "Unknown Prospect"
             generation_config=genai.GenerationConfig(response_mime_type="application/json")
         )
         draft_data = clean_json_response(resp_a.text)
-        logger.info(f"Agent A classified lead as: {draft_data.get('sentiment', 'Unknown')}")
+        logger.info(f"Agent A classified query urgency as: {draft_data.get('sentiment', 'Unknown')}")
         
-        # AGENT C: The Market Analyst
+        # AGENT C: The Venue Analyst
         market_intelligence = ""
         if draft_data.get("competitor_mentioned") and draft_data.get("competitor_name"):
             comp_name = draft_data.get("competitor_name")
             try:
-                results = DDGS().text(f"{comp_name} specifications and weaknesses", max_results=3)
-                market_intelligence = "LIVE MARKET INTELLIGENCE:\n"
+                results = DDGS().text(f"{comp_name} venue crowd management real-time info", max_results=3)
+                market_intelligence = "LIVE VENUE INTELLIGENCE:\n"
                 for r in results:
                     market_intelligence += f"- {r['title']}: {r['body']}\n"
-                logger.info(f"Agent C gathered market intel on: {comp_name}")
+                logger.info(f"Agent C gathered venue intel on: {comp_name}")
             except Exception as e:
                 logger.warning(f"Agent C web search suppressed: {e}")
                 
-        # AGENT B: The Engineer/Closer
+        # AGENT B: The Verifier
         critic_prompt = (
-            "You are a Senior Engineer checking for technical hallucinations. Review the drafted email "
-            f"against this knowledge vault exactly: {KNOWLEDGE_VAULT}. "
-            "If the draft contains impossible technical specifications or wrong product numbers, FIX IT. "
+            "You are a venue operations expert verifying AI-generated crowd guidance for accuracy. Review the drafted guidance "
+            f"against this venue information base exactly: {KNOWLEDGE_VAULT}. "
+            "If the guidance contains incorrect venue information, wrong directions, or inaccurate crowd estimates, FIX IT. "
         )
         
         if market_intelligence:
             critic_prompt += (
-                f"Additionally, using this market intelligence: {market_intelligence} "
-                "append 3 new data-driven bullet points on why OmniCore V9 is superior to the competitor. "
+                f"Additionally, using this live venue intelligence: {market_intelligence} "
+                "append 3 actionable crowd management recommendations for the operations team. "
             )
             
         critic_prompt += (
@@ -206,7 +208,7 @@ async def process_lead_notes(notes: str, attendee_name: str = "Unknown Prospect"
         )
         
         if market_intelligence:
-            critic_prompt += "Prefix each of the 3 new competitor points with the exact string 'Battle Card: ' and just add them as flat strings to the array. "
+            critic_prompt += "Prefix each of the 3 new recommendations with the exact string 'Crowd Action: ' and just add them as flat strings to the array. "
             
         critic_prompt += "Output exactly in JSON format with fields: 'verified_email' and the updated 'action_items'."
         
@@ -225,17 +227,17 @@ async def process_lead_notes(notes: str, attendee_name: str = "Unknown Prospect"
         draft_data["drafted_email"] = critic_data.get("verified_email", draft_data.get("drafted_email", ""))
         if "action_items" in critic_data:
              draft_data["action_items"] = critic_data["action_items"]
-        draft_data["verification_status"] = "Verified by OmniEngine & Market Scanned"
+        draft_data["verification_status"] = "Verified by AI Crowd Intelligence Engine"
         
-        # Deploy Webhook Analytics Pipeline for HOT Leads
+        # Deploy Webhook for URGENT Crowd Situations
         if draft_data.get("sentiment", "").lower() == "hot" and WEBHOOK_URL:
             payload = {
-                "content": f"🚨 **HOT LEAD SECURED** 🚨\n**Prospect:** {attendee_name}\n**Intel:** {notes}\n**Auto-Action:** Proposal drafted and verified by OmniEngine."
+                "content": f"🚨 **URGENT CROWD ALERT** 🚨\n**Attendee:** {attendee_name}\n**Query:** {notes}\n**Auto-Action:** Guidance drafted and verified by AI Crowd Intelligence."
             }
             try:
                 async with httpx.AsyncClient(timeout=5.0) as client:
                     await client.post(WEBHOOK_URL, json=payload)
-                logger.info(f"Hot lead webhook dispatched for: {attendee_name}")
+                logger.info(f"Urgent query webhook dispatched for: {attendee_name}")
             except Exception as e:
                 logger.warning(f"Webhook dispatch failed: {e}")
 

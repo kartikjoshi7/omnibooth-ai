@@ -10,74 +10,74 @@ import { ApiService, Lead } from '../services/api.service';
   template: `
     <div class="dashboard-container" role="main" aria-label="Dashboard Pipeline">
       <header class="glass-panel header-bar" role="banner">
-        <h1>OmniBooth CRM Dashboard</h1>
-        <button class="btn-primary" aria-label="Refresh Lead Data" (click)="loadLeads()">Refresh Leads</button>
+        <h1>Venue Operations Dashboard</h1>
+        <button class="btn-primary" aria-label="Refresh Query Data" (click)="loadLeads()">Refresh Queries</button>
       </header>
       
       <section class="capture-section glass-panel mt-4" aria-label="Knowledge Vault Engine">
-        <h2 style="color: var(--accent-color)">Ingest Knowledge Vault (RAG)</h2>
-        <textarea class="input-primary mt-3" aria-label="Document Input Textarea" [(ngModel)]="vaultDoc" rows="3" placeholder="Paste technical manuals, product specs, or documentation to align the AI Critic Loop..."></textarea>
-        <button class="btn-primary mt-3" aria-label="Initiate Vault Ingestion" (click)="uploadDocs()">Ingest Reference Data</button>
+        <h2 style="color: var(--accent-color)">Venue Information Base (RAG)</h2>
+        <textarea class="input-primary mt-3" aria-label="Document Input Textarea" [(ngModel)]="vaultDoc" rows="3" placeholder="Paste venue maps, event schedules, facility guides, or crowd policies to ground the AI assistant..."></textarea>
+        <button class="btn-primary mt-3" aria-label="Upload Venue Information" (click)="uploadDocs()">Upload Venue Data</button>
       </section>
 
-      <section class="capture-section glass-panel mt-4" aria-label="Lead Extraction Engine">
-        <h2>Enter Exhibitor Notes</h2>
+      <section class="capture-section glass-panel mt-4" aria-label="Attendee Query Processing">
+        <h2>Enter Attendee Query</h2>
         <div class="form-grid">
           <input class="input-primary" aria-label="Attendee Name TextField" [(ngModel)]="newLeadName" placeholder="Attendee Name (Optional)" />
           <input class="input-primary" aria-label="Attendee Email TextField" [(ngModel)]="newLeadEmail" placeholder="Attendee Email (Optional)" />
         </div>
-        <textarea class="input-primary mt-3" aria-label="Attendee Raw Notes" [(ngModel)]="newLeadNotes" rows="3" placeholder="Notes/Voice transcript regarding the technical interaction..."></textarea>
-        <button class="btn-primary mt-3" aria-label="Execute AI Extraction" (click)="captureLead()" [disabled]="isParsing || !newLeadNotes.trim()">
-          {{ isParsing ? 'Parsing Context via Gemini...' : 'Analyze & Capture Lead' }}
+        <textarea class="input-primary mt-3" aria-label="Attendee Query Notes" [(ngModel)]="newLeadNotes" rows="3" placeholder="Describe the attendee's question about crowd levels, wait times, navigation, or facilities..."></textarea>
+        <button class="btn-primary mt-3" aria-label="Process Attendee Query" (click)="captureLead()" [disabled]="isParsing || !newLeadNotes.trim()">
+          {{ isParsing ? 'Processing via Gemini...' : 'Analyze & Process Query' }}
         </button>
       </section>
 
-      <section class="kanban-board mt-4" aria-label="Pipeline Kanban Columns">
-        <div class="kanban-column glass-panel hot" role="list" aria-label="Hot Leads Column">
-          <h3 aria-hidden="true">🔥 Hot Leads</h3>
+      <section class="kanban-board mt-4" aria-label="Query Priority Kanban Board">
+        <div class="kanban-column glass-panel hot" role="list" aria-label="Urgent Queries Column">
+          <h3 aria-hidden="true">🔥 Urgent Queries</h3>
           <div class="lead-card" *ngFor="let m of getLeadsBySentiment('Hot')" (click)="expandLead(m)">
-            <h4>{{ m.attendee_name || 'Unknown User' }}</h4>
+            <h4>{{ m.attendee_name || 'Anonymous Attendee' }}</h4>
             <p class="summary">{{ m.notes }}</p>
           </div>
         </div>
         
-        <div class="kanban-column glass-panel warm" role="list" aria-label="Warm Leads Column">
-          <h3 aria-hidden="true">⚡ Warm Leads</h3>
+        <div class="kanban-column glass-panel warm" role="list" aria-label="Moderate Queries Column">
+          <h3 aria-hidden="true">⚡ Moderate Queries</h3>
           <div class="lead-card" *ngFor="let m of getLeadsBySentiment('Warm')" (click)="expandLead(m)">
-            <h4>{{ m.attendee_name || 'Unknown User' }}</h4>
+            <h4>{{ m.attendee_name || 'Anonymous Attendee' }}</h4>
             <p class="summary">{{ m.notes }}</p>
           </div>
         </div>
 
-        <div class="kanban-column glass-panel cold" role="list" aria-label="Cold Leads Column">
-          <h3 aria-hidden="true">❄️ Cold Leads</h3>
+        <div class="kanban-column glass-panel cold" role="list" aria-label="Low Priority Queries Column">
+          <h3 aria-hidden="true">❄️ Low Priority</h3>
           <div class="lead-card" *ngFor="let m of getLeadsBySentiment('Cold')" (click)="expandLead(m)">
-            <h4>{{ m.attendee_name || 'Unknown User' }}</h4>
+            <h4>{{ m.attendee_name || 'Anonymous Attendee' }}</h4>
             <p class="summary">{{ m.notes }}</p>
           </div>
         </div>
       </section>
 
-      <div class="modal-overlay" aria-modal="true" role="dialog" aria-label="Exhibitor Card Modal" *ngIf="expandedLead" (click)="expandedLead = null">
+      <div class="modal-overlay" aria-modal="true" role="dialog" aria-label="Query Detail Modal" *ngIf="expandedLead" (click)="expandedLead = null">
         <div class="modal glass-panel" (click)="$event.stopPropagation()">
-          <button class="close-btn" aria-label="Close Pipeline Detail Modal" (click)="expandedLead = null">×</button>
-          <h2>Lead Details: {{ expandedLead.attendee_name || 'Unknown' }}</h2>
+          <button class="close-btn" aria-label="Close Detail Modal" (click)="expandedLead = null">×</button>
+          <h2>Query Details: {{ expandedLead.attendee_name || 'Anonymous' }}</h2>
           <div class="modal-content mt-3">
-             <h3>Raw Notes</h3>
+             <h3>Attendee Query</h3>
              <p>{{ expandedLead.notes }}</p>
 
-             <h3 class="mt-3">Action Items</h3>
+             <h3 class="mt-3">Recommended Actions</h3>
              <ul>
                <li *ngFor="let action of expandedLead.action_items">{{ action }}</li>
              </ul>
              
-             <h3 class="mt-3" style="color: var(--warning)">OmniEngine Verification Status</h3>
+             <h3 class="mt-3" style="color: var(--warning)">AI Verification Status</h3>
              <p>{{ expandedLead.verification_status }}</p>
 
-             <h3 class="mt-3">Auto-Generated Follow-up</h3>
-             <textarea class="input-primary" aria-label="Drafted Sales Follow-up Envelope" rows="6" readonly [value]="expandedLead.drafted_email"></textarea>
+             <h3 class="mt-3">AI-Generated Attendee Guidance</h3>
+             <textarea class="input-primary" aria-label="AI Generated Guidance Response" rows="6" readonly [value]="expandedLead.drafted_email"></textarea>
              
-             <button class="btn-primary mt-3" aria-label="Finalize Transmission of Proposal" (click)="sendEmail()">Send Proposal</button>
+             <button class="btn-primary mt-3" aria-label="Send Guidance to Attendee" (click)="sendEmail()">Send Guidance</button>
           </div>
         </div>
       </div>

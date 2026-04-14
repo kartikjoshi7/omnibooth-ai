@@ -8,27 +8,27 @@ import { CommonModule } from '@angular/common';
   template: `
     <div class="analytics-container" [ngClass]="{'active-engagement': getHotLeadVolume() >= 5}">
       <header class="glass-panel text-center">
-        <h1>OmniBooth Vibe Heatmap</h1>
-        <p class="text-secondary">Live monitoring of floor engagement across a rolling 10-minute window.</p>
+        <h1>Crowd Density Heatmap</h1>
+        <p class="text-secondary">Live monitoring of attendee query urgency across a rolling 10-minute window.</p>
       </header>
 
       <div class="heatmap-grid mt-4">
         <div class="metric-block hot-block glass-panel">
-          <h3>🔥 Hot Leads</h3>
+          <h3>🔥 Urgent</h3>
           <div class="volume-display">{{ getCount('Hot') }}</div>
         </div>
         <div class="metric-block warm-block glass-panel">
-          <h3>⚡ Warm Leads</h3>
+          <h3>⚡ Moderate</h3>
           <div class="volume-display">{{ getCount('Warm') }}</div>
         </div>
         <div class="metric-block cold-block glass-panel">
-          <h3>❄️ Cold Leads</h3>
+          <h3>❄️ Low</h3>
           <div class="volume-display">{{ getCount('Cold') }}</div>
         </div>
       </div>
       
       <div class="glass-panel mt-4 text-center pulse-indicator" *ngIf="getHotLeadVolume() >= 5">
-         🚨 HIGH ENGAGEMENT ALERT: 5+ Hot Leads actively tracking!
+         🚨 HIGH VOLUME ALERT: 5+ Urgent crowd queries in the last 10 minutes!
       </div>
     </div>
   `,
