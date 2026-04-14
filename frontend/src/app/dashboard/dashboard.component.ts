@@ -170,7 +170,7 @@ export class DashboardComponent implements OnInit {
 
   async uploadDocs() {
      try {
-       await fetch('http://localhost:8000/upload-docs', {
+       await fetch('/upload-docs', {
          method: 'POST',
          headers: { 'Content-Type': 'application/json' },
          body: JSON.stringify({ text: this.vaultDoc })

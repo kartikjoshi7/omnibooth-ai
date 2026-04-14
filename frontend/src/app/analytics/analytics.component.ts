@@ -103,7 +103,7 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
 
   async fetchAnalytics() {
     try {
-      const res = await fetch('http://localhost:8000/analytics');
+      const res = await fetch('/analytics');
       if (res.ok) {
         this.analyticsData = await res.json();
         this.cdr.detectChanges();
