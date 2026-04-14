@@ -1,1 +1,14 @@
-<router-outlet></router-outlet>
+<nav class="nav-bar">
+    <div class="nav-brand">
+        <span class="logo-text">OmniBooth AI</span>
+        <span class="logo-glow"></span>
+    </div>
+    <div class="nav-links">
+        <a routerLink="/kiosk" routerLinkActive="active-link" class="nav-item">Kiosk Mode</a>
+        <a routerLink="/dashboard" routerLinkActive="active-link" class="nav-item btn-secondary-nav">Exhibitor Dashboard</a>
+    </div>
+</nav>
+
+<main class="page-content">
+    <router-outlet></router-outlet>
+</main>
