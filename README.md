@@ -62,7 +62,7 @@ OmniBooth AI is engineered around a strict separation of concerns, operating acr
 | **Frontend** | Angular 21, TypeScript | Standalone components, Web Speech API, Camera API |
 | **Backend** | Python, FastAPI, Motor | Async REST API, agentic pipeline orchestration |
 | **Database** | MongoDB Atlas | Lead storage, RAG knowledge vault, analytics aggregation |
-| **Security** | SlowAPI, CORS allowlist | Rate limiting (5 req/min), origin-locked CORS |
+| **Security** | CORS allowlist, Input guard | Origin-locked CORS, validated Pydantic models |
 | **Logging** | Python `logging` (JSON) | Structured logs compatible with Google Cloud Logging |
 | **Deployment** | Docker, Google Cloud Run | Multi-stage build, serverless container hosting |
 | **CI/CD** | Google Cloud Build | Automated build → push → deploy pipeline |
@@ -80,7 +80,6 @@ The lead processing engine uses a **3-agent cascade** where each agent has a dis
 
 ### Security & Trust
 - 🔒 **Zero-Trust Architecture**: No API keys, secrets, or server logic exposed to the client. All AI processing occurs server-side.
-- 🛡️ **Rate Limiting**: All mutation endpoints are protected by `slowapi` (5 requests/minute on `/capture-lead` and `/upload-docs`).
 - 🔐 **CORS Allowlist**: Origins restricted to the production Cloud Run URL and localhost development servers only.
 - ✅ **Input Validation**: Pydantic models enforce `min_length`/`max_length` constraints on all user-submitted text fields.
 

@@ -5,9 +5,6 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from fastapi.responses import FileResponse, JSONResponse
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
 import google.generativeai as genai
 
 from backend.models import KioskRequest, KioskResponse, LeadCaptureRequest, LeadCaptureResponse, DocumentUploadRequest
@@ -22,8 +19,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("omnibooth")
 
-# --- Rate Limiter ---
-limiter = Limiter(key_func=get_remote_address)
+# --- Structured Logging ---
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -37,8 +33,6 @@ async def lifespan(app: FastAPI):
     logger.info("OmniBooth AI Backend shutdown — database connections closed")
 
 app = FastAPI(title="OmniBooth AI Backend", version="1.0.0", lifespan=lifespan)
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # --- CORS: Explicit Origin Allowlist ---
 ALLOWED_ORIGINS = os.getenv(
@@ -55,7 +49,6 @@ app.add_middleware(
 )
 
 @app.post("/generate-visual", response_model=KioskResponse)
-@limiter.limit("10/minute")
 async def generate_visual(request: KioskRequest, req: Request):
     """
     Handles multimodal Kiosk inputs. Returns a dynamically generated
@@ -67,7 +60,6 @@ async def generate_visual(request: KioskRequest, req: Request):
     return KioskResponse(media_url=data["media_url"], message=data["message"])
 
 @app.post("/upload-docs")
-@limiter.limit("5/minute")
 async def upload_docs(request: DocumentUploadRequest, req: Request):
     """Securely upserts new engineering specifications directly into the MongoDB RAG Knowledge Vault."""
     await update_knowledge_vault(request.text)
@@ -75,7 +67,6 @@ async def upload_docs(request: DocumentUploadRequest, req: Request):
     return {"message": "Knowledge Vault expanded successfully in MongoDB."}
 
 @app.post("/capture-lead", response_model=LeadCaptureResponse)
-@limiter.limit("5/minute")
 async def capture_lead(request: LeadCaptureRequest, req: Request):
     """
     Drives the Agentic Critic Loop. Extracts raw sales notes, identifies market competitors,
@@ -111,7 +102,6 @@ async def capture_lead(request: LeadCaptureRequest, req: Request):
     )
 
 @app.get("/leads")
-@limiter.limit("20/minute")
 async def get_leads(req: Request):
     """Retrieves the chronological descending list of processed leads for the CRM Pipeline."""
     db = get_db()
@@ -129,7 +119,6 @@ async def get_leads(req: Request):
     return leads
 
 @app.get("/analytics")
-@limiter.limit("20/minute")
 async def get_analytics(req: Request):
     """Generates the real-time Vibe Heatmap by aggregating sentiment limits over a rolling 10-minute cluster."""
     db = get_db()

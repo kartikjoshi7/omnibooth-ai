@@ -6,5 +6,4 @@ google-generativeai
 python-dotenv
 httpx
 duckduckgo-search
-slowapi
 pytest
