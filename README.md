@@ -67,11 +67,15 @@ OmniBooth AI is engineered around a strict separation of concerns, operating acr
 | **Frontend** | Angular 21, TypeScript | Standalone components, Web Speech API, Camera API |
 | **Backend** | Python, FastAPI, Motor | Async REST API, agentic crowd intelligence pipeline |
 | **Database** | MongoDB Atlas | Attendee query storage, venue info base, analytics aggregation |
+| **Secrets** | Google Cloud Secret Manager | Zero-trust credential injection for API keys |
 | **Security** | CORS allowlist, Pydantic validation | Origin-locked CORS, input length constraints |
-| **Logging** | Python `logging` (JSON), Google Cloud Logging | Structured logs for Google Cloud Logging ingestion |
+| **Logging** | Google Cloud Logging | Structured production telemetry via Cloud Logging SDK |
+| **Storage** | Google Cloud Storage | Venue asset persistence (maps, crowd snapshots) |
 | **Deployment** | Docker, Google Cloud Run | Multi-stage build, serverless container hosting |
-| **CI/CD** | Google Cloud Build | Automated build → test → deploy pipeline |
+| **CI/CD** | Google Cloud Build | Automated test → build → deploy pipeline |
 | **Alerting** | Discord Webhooks | Real-time notifications for urgent crowd situations |
+
+- **Google Cloud Ecosystem**: Natively integrates **Google Cloud Secret Manager** for zero-trust credential injection, **Google Cloud Logging** for structured production telemetry, **Google Cloud Storage** for venue asset management, and deployed via **Google Cloud Build/Run**.
 
 ---
 

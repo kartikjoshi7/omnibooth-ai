@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ApiService } from '../services/api.service';
 
 @Component({
   selector: 'app-analytics',
@@ -91,7 +92,7 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
   analyticsData: any[] = [];
   intervalId: any;
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(private cdr: ChangeDetectorRef, private apiService: ApiService) {}
 
   ngOnInit() {
     this.fetchAnalytics();
@@ -103,11 +104,8 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
 
   async fetchAnalytics() {
     try {
-      const res = await fetch('/analytics');
-      if (res.ok) {
-        this.analyticsData = await res.json();
-        this.cdr.detectChanges();
-      }
+      this.analyticsData = await this.apiService.getAnalytics();
+      this.cdr.detectChanges();
     } catch (err) {
       console.error('Failed to fetch realtime analytics:', err);
     }

@@ -8,12 +8,14 @@ import google.generativeai as genai
 from google.api_core.exceptions import ResourceExhausted
 from duckduckgo_search import DDGS
 from dotenv import load_dotenv
+from backend.services.gcp_services import get_gcp_secret
 
 load_dotenv()
 
 logger = logging.getLogger("omnibooth")
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+# Retrieve API keys via Google Cloud Secret Manager (falls back to .env locally)
+GEMINI_API_KEY = get_gcp_secret("GEMINI_API_KEY")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
 if GEMINI_API_KEY and GEMINI_API_KEY != "<YOUR_GEMINI_API_KEY_HERE>":

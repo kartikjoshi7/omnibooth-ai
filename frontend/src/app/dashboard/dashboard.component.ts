@@ -170,16 +170,12 @@ export class DashboardComponent implements OnInit {
 
   async uploadDocs() {
      try {
-       await fetch('/upload-docs', {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ text: this.vaultDoc })
-       });
-       alert('Knowledge Vault Synced successfully!');
+       await this.apiService.uploadDocs(this.vaultDoc);
+       alert('Venue Information Base synced successfully!');
        this.vaultDoc = '';
        this.cdr.detectChanges();
      } catch (err) {
-       console.error("Failed to upload RAG docs", err);
+       console.error("Failed to upload venue data", err);
      }
   }
 

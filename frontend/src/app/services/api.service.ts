@@ -59,4 +59,16 @@ export class ApiService {
       this.http.get<Lead[]>(`${this.baseUrl}/leads`)
     );
   }
+
+  async uploadDocs(text: string): Promise<{ message: string }> {
+    return firstValueFrom(
+      this.http.post<{ message: string }>(`${this.baseUrl}/upload-docs`, { text })
+    );
+  }
+
+  async getAnalytics(): Promise<any[]> {
+    return firstValueFrom(
+      this.http.get<any[]>(`${this.baseUrl}/analytics`)
+    );
+  }
 }

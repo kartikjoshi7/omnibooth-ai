@@ -1,4 +1,5 @@
 import os
+import json
 import logging
 import datetime
 from fastapi import FastAPI, HTTPException, Request
@@ -10,6 +11,7 @@ import google.generativeai as genai
 from backend.models import KioskRequest, KioskResponse, LeadCaptureRequest, LeadCaptureResponse, DocumentUploadRequest
 from backend.services.gemini_service import generate_visual_context, process_lead_notes, update_knowledge_vault
 from backend.services.database import get_db, close_db
+from backend.services.gcp_services import setup_gcp_logging, upload_to_gcs
 
 # --- Structured Logging with Google Cloud Logging ---
 logging.basicConfig(
@@ -19,19 +21,13 @@ logging.basicConfig(
 )
 logger = logging.getLogger("omnibooth")
 
-# Integrate Google Cloud Logging when running on Cloud Run
-try:
-    import google.cloud.logging as cloud_logging
-    cloud_client = cloud_logging.Client()
-    cloud_client.setup_logging()
-    logger.info("Google Cloud Logging client attached successfully")
-except Exception:
-    logger.info("Google Cloud Logging unavailable — using standard JSON logging")
+# Initialize Google Cloud Logging (falls back to JSON console logging locally)
+setup_gcp_logging()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handles application startup and graceful shutdown database connection severing."""
-    logger.info("OmniBooth AI Backend starting — initializing services")
+    logger.info("OmniBooth AI Backend starting — initializing Google Cloud services")
     logger.info(f"Gemini API Key configured: {bool(os.getenv('GEMINI_API_KEY'))}")
     logger.info(f"MongoDB URI configured: {bool(os.getenv('MONGODB_URI'))}")
     logger.info(f"Discord Webhook configured: {bool(os.getenv('WEBHOOK_URL'))}")
@@ -60,10 +56,22 @@ async def generate_visual(request: KioskRequest, req: Request):
     """
     Handles multimodal Venue Kiosk inputs. Returns AI-generated crowd guidance
     and a contextual venue visualization URL for the attendee.
+    Persists generated assets to Google Cloud Storage when available.
     """
     data = await generate_visual_context(request.prompt, request.image_data)
     if "media_url" not in data or "message" not in data:
         raise HTTPException(status_code=500, detail="Invalid generation response.")
+
+    # Persist venue visualization metadata to Google Cloud Storage
+    try:
+        gcs_bucket = os.getenv("GCS_BUCKET_NAME", "omnibooth-venue-assets")
+        timestamp = datetime.datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        blob_name = f"venue-visuals/{timestamp}.json"
+        asset_payload = json.dumps({"prompt": request.prompt, "media_url": data["media_url"], "message": data["message"]}).encode("utf-8")
+        upload_to_gcs(gcs_bucket, blob_name, asset_payload)
+    except Exception as e:
+        logger.debug(f"GCS persistence skipped: {e}")
+
     return KioskResponse(media_url=data["media_url"], message=data["message"])
 
 @app.post("/upload-docs")

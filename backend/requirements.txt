@@ -4,6 +4,8 @@ motor
 pydantic
 google-generativeai
 google-cloud-logging
+google-cloud-secret-manager
+google-cloud-storage
 python-dotenv
 httpx
 duckduckgo-search
