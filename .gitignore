@@ -1,0 +1,46 @@
+# ==========================================
+# OmniBooth AI V2 - Root Gitignore
+# ==========================================
+
+# --- Secrets & Keys (CRITICAL) ---
+.env
+.env.*
+*.pem
+*.key
+
+# --- Backend (Python/FastAPI) ---
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# --- Frontend (Angular/Node) ---
+node_modules/
+.angular/
+dist/
+out-tsc/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- System/OS Files ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# --- IDEs & Environments ---
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

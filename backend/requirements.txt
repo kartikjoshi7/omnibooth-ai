@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+motor
+pydantic
+google-generativeai
+python-dotenv
+requests
+httpx
+duckduckgo-search
+ddgs
